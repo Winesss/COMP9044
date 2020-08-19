@@ -1,0 +1,21 @@
+#!/bin/dash
+
+if test -d .shrug 
+then
+	echo "$0: error: .shrug already exists"
+	exit 1
+fi
+
+# setting up master branch -> current
+mkdir -p .shrug/branches/master
+echo master > .shrug/branches/current.txt
+touch .shrug/branches/master/.log.txt
+chmod u+w .shrug/branches/master/.log.txt
+
+
+mkdir -p .shrug/index
+touch ".shrug/index/deletelist"
+mkdir -p .shrug/commits
+
+echo "Initialized empty shrug repository in .shrug"
+

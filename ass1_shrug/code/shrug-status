@@ -1,0 +1,92 @@
+#!/bin/dash
+
+
+# check for .shrug repository exists
+if test ! -d ".shrug"
+then
+	echo "$0: error: no .shrug directory containing shrug repository exists"
+	exit 1
+fi
+
+# switch to current branch
+branch="$(cat .shrug/branches/current.txt)"
+
+rm -f .shrug/filelist
+ls -1 >.shrug/filelist
+ls -1 .shrug/index/|egrep -v "deletelist" >>.shrug/filelist
+ls -1 ".shrug/branches/$branch/"|sed s/.[0-9]*$//|sort|uniq >>.shrug/filelist
+
+for filename in $(cat .shrug/filelist |sort|uniq)
+do	
+	if [ -z "$(head -1 ".shrug/branches/$branch/.log.txt"|cut -d' ' -f1)" ];then
+		commit=0
+	else
+		commit=$(( $(head -1 ".shrug/branches/$branch/.log.txt"|cut -d' ' -f1) ))
+	fi
+
+	if [ -z "$(ls -1 ".shrug/branches/$branch/"|egrep "$filename")" ];then
+		latest=0
+	else
+		latest="$(( $(ls -1 ".shrug/branches/$branch/"|egrep "$filename"|tr '.' '-'|sed s/.*-//|sort -n|tail -1) ))"
+	fi
+	
+	if ! [ -e ".shrug/index/$filename" ] && ! [ -e  "$filename" ];then
+		if ! [ -z "$(cat .shrug/index/deletelist|egrep "$filename")" ];then
+			status="deleted"
+		fi
+	elif ! [ -e ".shrug/index/$filename" ] ;then
+		status="untracked"
+	elif ! [ -e  "$filename" ];then
+		if [ -e ".shrug/index/$filename" ];then
+			if [ -e ".shrug/branches/$branch/$filename.$latest" ];then
+				status="file deleted"
+			else
+				status="added to index, file deleted"
+			fi
+		else
+			status="file deleted"
+		fi
+	elif [ -e ".shrug/index/$filename" ] && [ -e  ".shrug/branches/$branch/$filename.$latest" ];then
+		if ! [ -z "$(diff -N ".shrug/branches/$branch/$filename.$latest" "$filename" )" ] ;then
+			if ! [ -z "$(diff -N ".shrug/index/$filename" "$filename" )" ] ;then
+				if [ -z "$(diff -N ".shrug/index/$filename" ".shrug/branches/$branch/$filename.$latest" )" ] ;then
+					status="file changed, changes not staged for commit"
+				else
+					status="file changed, different changes staged for commit"
+				fi
+			else
+				status="file changed, changes staged for commit"
+			fi
+		else
+			if [ -z "$(diff -N ".shrug/index/$filename" "$filename" )" ] ;then
+				status="same as repo"
+			fi
+		fi
+	else
+		if [ -e ".shrug/branches/$branch/$filename.$latest" ] ;then
+			status="same as repo"
+		else
+			if ! [ -z "$(diff -N ".shrug/index/$filename" "$filename" )" ] ;then
+				status="added to index, file changed"
+			else
+				if [ -z "$(diff -N ".shrug/branches/$branch/$filename.$latest" "$filename" )" ] && [ -z "$(diff -N ".shrug/index/$filename" "$filename" )" ] ;then
+					if [ -e ".shrug/branches/$branch/$filename.$latest" ];then
+						status="same as repo"
+					else
+						status="added to index"
+					fi					
+				else
+					if [ -z "$(diff -N ".shrug/index/$filename" "$filename" )" ] ;then
+						status="added to index"
+					fi
+				fi
+			fi
+		fi
+	fi
+	
+	if ! [ -z "$status" ];then
+		echo "$filename - $status"
+	fi
+done
+
+rm -f .shrug/filelist

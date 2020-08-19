@@ -1,0 +1,19 @@
+Date		Start	Stop			Activity							Comments
+01/08/20	13:00	15:00	pre setup and understanding	setting up assignment and understanding various objectives
+01/08/20	16:00	17:00	coding						Subset 0 – echo,ls pwd , id, date
+01/08/20	18:30	22:30	coding&debugging			Subset 0 – ls modified, var assignment, subset 1- cd ,for, do , done 
+02/08/20	13:15	16:15	coding&debugging			Subset 1- for modified glob and range, printing space added
+02/08/20	18:30	22:30	coding						Subset 1 if else elsif added, if test if [ eq]
+03/08/20	13:00	15:00	coding&debugging			Subset 1 and 2, echo modified endl adjusted ,single quotes double quotes fixed
+03/08/20	16:30	19:30	coding						Subset 2 and 3  while added, argument cases added, operator reassignment added
+03/08/20	20:30	22:30	coding&debugging			Subset 2 and 3 echo modified , if,while modified, expres number added., exit and return added
+04/08/20	10:00	11:00	coding						Subset 4 sub routines coding, numerical operations coding
+04/08/20	16:30	19:30	coding						Subset 4 sub routines coding, numerical operations coding, local variable
+04/08/20	20:30	22:30	coding&debugging			Subset 4 if modified fgrep added, ARGV modified and sub routine Arguments added
+05/08/20	13:15	16:15	coding&debugging			Subset 4 redirection to file added echo modified
+06/08/20	20:30	22:30	coding&debugging			Subset 4 additional system commands added rm mv chmod,curly  bracket ending added
+07/08/20	17:30	21:00	coding&debugging			Subset 4 numerical operation
+08/08/20	13:00	15:00	coding&debugging			Subset 4 functions and argv assignment fixed
+08/08/20	16:00	20:00	testing						test suite and demo
+09/08/20	11:00	12:30	testing						test suite and demo
+

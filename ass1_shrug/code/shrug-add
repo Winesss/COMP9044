@@ -1,0 +1,46 @@
+#!/bin/dash
+
+# check for .shrug repository exists
+if test ! -d .shrug 
+then
+	echo "$0: error: no .shrug directory containing shrug repository exists"
+	exit 1
+fi
+
+
+# switch to current branch
+branch="$(cat .shrug/branches/current.txt)"
+
+
+
+for var in "$@"
+do	
+	# check for file exists
+	if ! [ -e "$var" ]
+	then
+			if ! [ -e ".shrug/index/$var" ]
+			then
+				# file not exist
+				if [ $(ls -1 ".shrug/branches/$branch/"|sed s/.[0-9]*$//|sort|uniq|egrep "$var"|wc -l) -eq 0 ]
+				then
+					echo "$0: error: can not open '$var'"
+					exit 1
+				fi
+			# file deleted from curr directory therefore mark as deleted in index	
+			else
+				shrug-rm --cached "$var"
+			fi
+	# check for valid filename
+	elif echo "$var"| grep -q ^[a-zA-Z0-9][a-zA-Z0-9\.\-_]*$
+	then
+		cp "$var" .shrug/index/
+		if ! [ -z $(cat ".shrug/index/deletelist"|egrep "$var") ];then
+			cat ".shrug/index/deletelist"|egrep -v "$var" >".shrug/index/deletelist"
+		fi
+		
+			
+	else
+		echo "$0: error: invalid filename '$var'"
+		exit 1
+	fi
+done

@@ -1,0 +1,245 @@
+#!/bin/dash
+
+# check for .shrug repository exists
+if test ! -d ".shrug"
+then
+	echo "$0: error: no .shrug directory containing shrug repository exists"
+	exit 1
+fi
+
+
+if [ $# -lt 1 ]
+then 
+	echo "Usage:$0 [--force] [--cached] filename"	
+    exit 1
+fi
+
+
+
+
+addto_deletelist(){
+	echo "$1" >>".shrug/index/deletelist"
+}
+
+force_cached()
+{
+
+	for filename in $@
+	do	
+		if ! [ "$filename" = "--force" ] && ! [ "$filename" = "--cached" ];then	
+			if [ -z "$(head -1 ".shrug/branches/$branch/.log.txt"|cut -d' ' -f1)" ];then
+				commit=0
+			else
+				commit=$(( $(head -1 ".shrug/branches/$branch/.log.txt"|cut -d' ' -f1) ))
+			fi
+
+			if [ -z "$(ls -1 ".shrug/branches/$branch/"|egrep "$filename")" ];then
+				latest=0
+			else
+				latest="$(( $(ls -1 ".shrug/branches/$branch/"|egrep "$filename"|tr '.' '-'|sed s/.*-//|sort -n|tail -1) ))"
+			fi
+		
+		
+			if [ -e ".shrug/index/$filename" ] && [ -e  ".shrug/branches/$branch/$filename.$latest" ];then
+				:
+			else
+				if ! [ -e ".shrug/index/$filename" ];then
+					echo "$0: error: '$filename' is not in the shrug repository"
+					exit 1
+				fi
+			fi
+			rm -f ".shrug/index/$filename"
+			addto_deletelist "$filename"	
+		fi
+	done
+  	
+}
+
+delete_cached()
+{
+
+	for filename in $@
+	do	
+		if ! [ "$filename" = "--force" ] && ! [ "$filename" = "--cached" ];then	
+			if [ -z "$(head -1 ".shrug/branches/$branch/.log.txt"|cut -d' ' -f1)" ];then
+				commit=0
+			else
+				commit=$(( $(head -1 ".shrug/branches/$branch/.log.txt"|cut -d' ' -f1) ))
+			fi
+
+			if [ -z "$(ls -1 ".shrug/branches/$branch/"|egrep "$filename")" ];then
+				latest=0
+			else
+				latest="$(( $(ls -1 ".shrug/branches/$branch/"|egrep "$filename"|tr '.' '-'|sed s/.*-//|sort -n|tail -1) ))"
+			fi
+		
+		
+			if [ -e ".shrug/index/$filename" ] && [ -e  ".shrug/branches/$branch/$filename.$latest" ];then
+				if ! [ -z "$(diff -N ".shrug/branches/$branch/$filename.$latest" ".shrug/index/$filename" )" ] ;then
+					if ! [ -z "$(diff -N "$filename" ".shrug/index/$filename" )" ] ;then
+						echo "$0: error: '$filename' in index is different to both working file and repository"
+						exit 1
+					fi
+				fi
+			else
+				if ! [ -e ".shrug/index/$filename" ];then
+					echo "$0: error: '$filename' is not in the shrug repository"
+					exit 1
+				fi
+			fi
+			rm -f ".shrug/index/$filename"
+			addto_deletelist "$filename"	
+		fi
+	done
+  	
+}
+
+delete_force()
+{
+  	for filename in $@
+	do
+			if ! [ "$filename" = "--force" ] && ! [ "$filename" = "--cached" ]
+			then
+				if [ -z "$(head -1 ".shrug/branches/$branch/.log.txt"|cut -d' ' -f1)" ];then
+					commit=0
+				else
+					commit=$(( $(head -1 ".shrug/branches/$branch/.log.txt"|cut -d' ' -f1) ))
+				fi
+
+				if [ -z "$(ls -1 ".shrug/branches/$branch/"|egrep "$filename")" ];then
+					latest=0
+				else
+					latest="$(( $(ls -1 ".shrug/branches/$branch/"|egrep "$filename"|tr '.' '-'|sed s/.*-//|sort -n|tail -1) ))"
+				fi
+				
+				if ! [ -e ".shrug/index/$filename" ];then
+					echo "$0: error: '$filename' is not in the shrug repository"
+					exit 1
+				fi
+				rm -f ".shrug/index/$filename"
+				addto_deletelist $filename
+				rm -f "$filename"
+	
+			fi
+	done
+  	
+}
+
+delete_with_warn()
+{
+
+	for filename in $@
+	do
+	
+		if [ -z "$(head -1 ".shrug/branches/$branch/.log.txt"|cut -d' ' -f1)" ];then
+			commit=0
+		else
+			commit=$(( $(head -1 ".shrug/branches/$branch/.log.txt"|cut -d' ' -f1) ))
+		fi
+
+		if [ -z "$(ls -1 ".shrug/branches/$branch/"|egrep "$filename")" ];then
+			latest=0
+		else
+			latest="$(( $(ls -1 ".shrug/branches/$branch/"|egrep "$filename"|tr '.' '-'|sed s/-.*-//|sort -n|tail -1) ))"
+		fi
+		
+		
+		#file = index = repo
+		if [ -e ".shrug/branches/$branch/$filename.$commit" ] && [ -e ".shrug/index/$filename" ] && [ -e "$filename" ] ;then
+			if  [ -z "$(diff -N ".shrug/index/$filename" "$filename")" ] && [ -z "$(diff -N ".shrug/branches/$branch/$filename.$commit" "$filename")" ] && [ -z "$(diff -N ".shrug/branches/$branch/$filename.$commit" ".shrug/index/$filename")" ];then
+				rm -f ".shrug/index/$filename"
+				addto_deletelist $filename
+				rm -f "$filename"
+				exit 0
+			fi
+		fi
+			
+		#file and repo different
+		if ! [ -e ".shrug/branches/$branch/$filename.$latest" ] ;then
+			if [ -e ".shrug/index/$filename" ];then
+				if [ -z "$(diff -N ".shrug/index/$filename" "$filename")" ];then
+					echo "$0: error: '$filename' has changes staged in the index"
+					exit 1
+				fi
+			else
+				#file not in repo
+				echo "$0: error: '$filename' is not in the shrug repository"
+				exit 1
+			fi
+		fi
+		
+		
+		if [ -e ".shrug/branches/$branch/$filename.$latest" ] && [ -e ".shrug/index/$filename" ];then
+			:
+		else
+			echo "$0: error: '$filename' is not in the shrug repository"
+			exit 1
+		fi
+		
+		#file not eq to index and not eq repo
+		if [ -z "$(diff -N ".shrug/branches/$branch/$filename.$latest" ".shrug/index/$filename")" ];then
+			if ! [ -z "$(diff -N ".shrug/branches/$branch/$filename.$latest" "$filename")" ];then
+				echo "$0: error: '$filename' in repository is different to working file"
+				exit 1
+			fi
+		else
+			if [ -z "$(diff -N ".shrug/index/$filename" "$filename")" ];then
+				if [ -e ".shrug/branches/$branch/$filename.$latest" ] ;then
+					if [ -z "$(diff -N ".shrug/branches/$branch/$filename.$latest" "$filename")" ];then
+						:
+					else
+						echo "$0: error: '$filename' has changes staged in the index"
+						exit 1
+					fi
+				else
+					echo "$0: error: '$filename' has changes staged in the index"
+					exit 1
+				fi
+			else
+				echo "$0: error: '$filename' in index is different to both working file and repository"
+				exit 1
+				
+			fi
+			
+		fi
+		
+		#file diff from index	
+		if [ -e ".shrug/branches/$branch/$filename.$commit" ] || [ -e ".shrug/index/$filename" ]; then
+			if [ -e ".shrug/index/$filename" ]; then
+				if [ -e ".shrug/branches/$branch/$filename.$commit" ];then
+					rm -f ".shrug/index/$filename"
+					addto_deletelist $filename
+					rm -f "$filename"
+				else
+					echo "$0: error: '$filename' has changes staged in the index"
+					exit 1
+				fi
+			fi
+		else
+			echo "$0: error: '$filename' is not in the shrug repository"
+			exit 1
+		fi
+	
+		
+		
+	done 	
+}
+
+# switch to current branch
+branch="$(cat .shrug/branches/current.txt)"
+if [ "$1" = "--force" ] && [ "$2" = "--cached" ];then
+	force_cached $@
+	exit 0
+fi
+
+if [ "$1" = "--cached" ] || [ "$2" = "--cached" ]
+then
+	delete_cached $@
+	exit 0
+elif [ "$1" = "--force" ] || [ "$2" = "--force" ]
+then
+	delete_force $@
+	exit 0
+else
+	delete_with_warn $@
+fi

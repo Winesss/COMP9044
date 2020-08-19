@@ -1,0 +1,72 @@
+#!/bin/dash
+
+# check for .shrug repository exists
+if test ! -d ".shrug"
+then
+	echo "$0: error: no .shrug directory containing shrug repository exists"
+	exit 1
+fi
+
+# switch to current branch
+branch="$(cat .shrug/branches/current.txt)"
+
+if [ $# -gt 2 ]
+then
+	echo "more params" 
+	echo "Usage:$0 [-d] [branch-name]"	
+    exit 1
+fi
+
+
+if [ $# -eq 0 ]
+then
+	if [ "$(ls -1 .shrug/branches|egrep -v "current.txt")" = "master" ];then
+		if test ! "$(ls .shrug/branches/$branch)";then
+			echo "$0: error: your repository does not have any commits yet"
+			exit 1
+		fi
+	else
+		ls -1 .shrug/branches|egrep -v "current.txt"
+	fi
+fi
+
+
+
+if [ $# -eq 2 ]
+then
+	if [ "$1" = "-d" ];then
+		if [ "$2" = "master" ];then
+			echo "$0: error: can not delete branch 'master'"
+			exit 1	
+		fi
+		if test -d ".shrug/branches/$2" ;then
+			rm -rf ".shrug/branches/$2"
+			echo "Deleted branch '$2'"
+		else
+			echo "$0: error: branch '$2' does not exist"
+			exit 1
+		fi
+	fi
+fi
+
+
+if [ $# -eq 1 ]
+then
+	# check for valid branchname
+	if echo "$1"| grep -q ^[a-zA-Z0-9][a-zA-Z0-9\.\-_]*$
+	then
+		if test -d ".shrug/branches/$1";then
+			echo "$0: error: branch '$1' already exists"
+			exit 1
+		fi
+		# setting up $1 branch -> current
+		mkdir -p ".shrug/branches/$1"
+		echo $1 > .shrug/branches/current.txt
+		touch .shrug/branches/$1/.log.txt
+		chmod u+w .shrug/branches/$1/.log.txt
+	else
+		echo "$0: error: invalid branchname '$1'"
+		exit 1
+	fi
+fi
+

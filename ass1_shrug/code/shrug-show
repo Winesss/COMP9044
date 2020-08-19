@@ -1,0 +1,72 @@
+#!/bin/dash
+
+# check for .shrug repository exists
+if test ! -d ".shrug"
+then
+	echo "$0: error: no .shrug directory containing shrug repository exists"
+	exit 1
+fi
+
+# usage check and correct parameter count
+if [ "$(echo $1 | egrep "[0-9]*:.*"|wc -l)" -gt 0 ] && [ $# -eq 1 ] 
+then
+	# switch to current branch
+	branch="$(cat .shrug/branches/current.txt)"
+
+	commit="$(echo $1 | cut -d':' -f1)"
+	filename="$(echo $1 | cut -d':' -f2)"
+
+	# if commit specified
+	if ! [ -z "$commit" ] 
+	then
+		if test ! -e ".shrug/branches/$branch/$filename.$commit"
+		then
+			# check if it is a valid commit
+			validcommit=$(cat .shrug/branches/$branch/.log.txt|head -1|cut -d' ' -f1)
+			if ! [ -z "$validcommit" ];then
+				if [ $validcommit -lt $commit ]
+				then
+					echo "$0: error: unknown commit '$commit'"
+					exit 1
+				fi
+			else
+				echo "$0: error: unknown commit '$commit'"
+				exit 1
+			fi
+				
+			
+			# check if there is actual filename exists
+			if [ "$(basename -a $(ls -1 .shrug/branches/$branch/*)| egrep "^$filename.[0-9]*$" |wc -l)" -gt 0 ]
+			then
+				# show content upto the latest commit
+				latest="$(( $(ls -1 ".shrug/branches/$branch/$filename."*|tr '.' '-'|sed s/-.*-//|sort -n|tail -1) ))" > /dev/null 2>&1
+				if [ -e ".shrug/branches/$branch/$filename.$latest" ] && [ -e ".shrug/index/$filename" ]
+				then
+					cat ".shrug/branches/$branch/$filename.$latest"
+				else
+					echo "$0: error: '$filename' not found in commit $commit"
+					exit 1
+				fi
+			else
+				echo "$0: error: '$filename' not found in commit $commit"
+				exit 1
+			fi
+		else
+			cat ".shrug/branches/$branch/$filename.$commit"
+		fi
+
+	else
+		# no commit specified - index file accessed
+		if test ! -e ".shrug/index/$filename"
+		then
+			echo "$0: error: '$filename' not found in index"
+			exit 1
+		else
+			cat ".shrug/index/$filename"
+		fi
+		
+	fi
+else 
+	echo "Usage:$0 [commit]:filename"	
+    exit 1
+fi

@@ -1,0 +1,17 @@
+Date	Start	Stop	Activity	Comments
+04/07/20	15:00	16:00	pre setup and understanding	setting up assignment and understanding various objectives
+04/07/20	16:00	17:00	coding	Subset 0 – shrug-init coding and debugging
+05/07/20	14:30	16:00	coding	Subset 0 – shrug-add coding and debugging shrug-init modification 
+06/07/20	13:15	16:15	coding	shrug-log and shrug-commit added modified shrug-init
+08/07/20	12:30	14:00	debugging	Added error coding, shrug-log, shrug-commit, shrug-init modified
+09/07/20	13:00	13:15	coding	Shrug-show added shrug-commit modified to work as snapshots for each commit
+09/07/20	13:15	15:45	debugging	shrug-show fixed with error coding
+09/07/20	15:45	19:15	Coding & debugging	shrug branch checkout added, shrug-show and commit modified
+10/07/20	13:00	15:00	coding	Shrug-commit -a option added
+12/07/20	14:00	16:00	Coding & debugging	Shrug-rm with parameters 
+12/07/20	18:30	20:30	Coding & debugging	Shrug-rm ,shrug-add modified 
+13/07/20	12:00	16:30	Coding & debugging	Shrug-rm ,shrug-add,shrug-commit modified 
+14/07/20	10:00	13:00	Coding & debugging	Shrug-rm 
+14/07/20	16:00	19:00	Coding & debugging	Shrug-rm 
+15/07/20	10:00	12:30	test suite creation & coding and debugging	Shrug-rm and shrug-status modified
+

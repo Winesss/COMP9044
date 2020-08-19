@@ -1,0 +1,11 @@
+#!/bin/dash
+
+rm -rf .shrug/
+mkdir -p temp
+mv shrug* temp/
+mv diary.txt temp/
+mv test* temp/
+rm * > /dev/null 2>&1
+mv temp/* .
+rm -rf temp
+
